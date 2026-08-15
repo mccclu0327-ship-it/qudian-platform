@@ -29,6 +29,7 @@ body {
 button, input, textarea { font: inherit; }
 button { cursor: pointer; }
 
+.page-frame,
 .page { min-height: 100vh; }
 
 @supports (zoom: 1) {
@@ -37,11 +38,20 @@ button { cursor: pointer; }
       overflow-x: hidden;
     }
 
+    .page-frame {
+      min-height: calc(100vh * var(--desktop-app-scale));
+    }
+
     .page {
       width: calc(100% / var(--desktop-app-scale));
       min-height: calc(100vh / var(--desktop-app-scale));
       transform: scale(var(--desktop-app-scale));
       transform-origin: top left;
+    }
+
+    .floating-pika {
+      transform: scale(var(--desktop-app-scale));
+      transform-origin: bottom left;
     }
   }
 }

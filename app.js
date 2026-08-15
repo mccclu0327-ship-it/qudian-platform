@@ -377,6 +377,7 @@ function diantuantuan(mood = "guide", small = false) {
 function setRoute(route) {
   session.transition = true;
   session.route = route;
+  window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   render();
   setTimeout(() => {
     session.transition = false;
@@ -388,23 +389,41 @@ function render() {
   document.body.classList.toggle("big-screen", session.bigScreen);
   const app = document.getElementById("app");
   app.innerHTML = `
-    <div class="page">
-      <header class="top-nav">
-        <button class="logo" onclick="setRoute('home')" aria-label="返回首页">
-          ${diantuantuan("guide", true)}
-          <span><strong>趣电星球</strong><em>电团团电气向导</em></span>
-        </button>
-        <nav>
-          ${nav.map(([id, label, icon]) => `<button class="nav-${id} ${session.route === id ? "active" : ""}" onclick="setRoute('${id}')"><span class="nav-icon">${icon}</span>${label}</button>`).join("")}
-        </nav>
-        <button class="screen-toggle" onclick="toggleBigScreen()">${session.bigScreen ? "退出大屏" : "大屏宣讲"}</button>
-      </header>
-      <main>${view()}</main>
-      <button class="floating-pika" onclick="setRoute('home')" title="电团团带你回首页">${diantuantuan("guide", false)}<span>回首页</span></button>
-      ${session.transition ? `<div class="transition">${diantuantuan("fly", false)}<strong>电团团正在带路...</strong></div>` : ""}
+    <div class="page-frame">
+      <div class="page">
+        <header class="top-nav">
+          <button class="logo" onclick="setRoute('home')" aria-label="返回首页">
+            ${diantuantuan("guide", true)}
+            <span><strong>趣电星球</strong><em>电团团电气向导</em></span>
+          </button>
+          <nav>
+            ${nav.map(([id, label, icon]) => `<button class="nav-${id} ${session.route === id ? "active" : ""}" onclick="setRoute('${id}')"><span class="nav-icon">${icon}</span>${label}</button>`).join("")}
+          </nav>
+          <button class="screen-toggle" onclick="toggleBigScreen()">${session.bigScreen ? "退出大屏" : "大屏宣讲"}</button>
+        </header>
+        <main>${view()}</main>
+      </div>
     </div>
+    <button class="floating-pika" onclick="setRoute('home')" title="电团团带你回首页">${diantuantuan("guide", false)}<span>回首页</span></button>
+      ${session.transition ? `<div class="transition">${diantuantuan("fly", false)}<strong>电团团正在带路...</strong></div>` : ""}
   `;
+  requestAnimationFrame(syncScaledPageHeight);
 }
+
+function syncScaledPageHeight() {
+  const page = document.querySelector(".page");
+  const frame = document.querySelector(".page-frame");
+  if (!page || !frame) return;
+  frame.style.height = "";
+  frame.style.overflow = "";
+  if (!window.matchMedia("(min-width: 1200px)").matches) return;
+  const scale = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--desktop-app-scale")) || 1;
+  if (scale >= 1) return;
+  frame.style.height = `${page.offsetHeight * scale}px`;
+  frame.style.overflow = "clip";
+}
+
+window.addEventListener("resize", () => requestAnimationFrame(syncScaledPageHeight));
 
 function toggleBigScreen() {
   session.bigScreen = !session.bigScreen;
