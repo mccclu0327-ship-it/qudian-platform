@@ -12,6 +12,7 @@
   --danger: #e63946;
   --paper: #fff;
   --line: rgba(32, 78, 207, 0.18);
+  --desktop-app-scale: 0.8;
   font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
 }
 
@@ -29,6 +30,21 @@ button, input, textarea { font: inherit; }
 button { cursor: pointer; }
 
 .page { min-height: 100vh; }
+
+@supports (zoom: 1) {
+  @media (min-width: 1200px) {
+    body {
+      overflow-x: hidden;
+    }
+
+    .page {
+      width: calc(100% / var(--desktop-app-scale));
+      min-height: calc(100vh / var(--desktop-app-scale));
+      transform: scale(var(--desktop-app-scale));
+      transform-origin: top left;
+    }
+  }
+}
 
 .top-nav {
   position: sticky;
