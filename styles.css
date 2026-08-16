@@ -2180,6 +2180,7 @@ main {
 }
 
 .safety-visual {
+  position: relative;
   display: grid;
   place-items: center;
   border-radius: 18px;
@@ -2192,11 +2193,22 @@ main {
 
 .safety-image {
   width: 100%;
-  max-width: 150px;
-  aspect-ratio: 4 / 3;
-  object-fit: contain;
+  height: 100%;
+  object-fit: cover;
   display: block;
-  filter: drop-shadow(0 8px 12px rgba(32, 78, 207, 0.16));
+}
+
+.safety-visual span {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 8px;
+  display: inline-flex;
+  justify-content: center;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 10px rgba(32, 78, 207, 0.14);
 }
 
 .steps {

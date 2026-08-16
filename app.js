@@ -46,6 +46,8 @@
   }
 };
 
+let scaledPageResizeObserver = null;
+
 const nav = [
   ["lab", "电路实验室", "⚡"],
   ["quiz", "知识问答", "💡"],
@@ -209,6 +211,93 @@ function mergeContent(target, source, mode) {
   if (mode === "replace") target.splice(0, target.length);
   target.push(...source);
 }
+
+const safetyImageFiles = [
+  "01_overloaded_power_strip.png",
+  "02_wet_hands_unplugging.png",
+  "03_wire_under_heavy_object.png",
+  "04_kitchen_appliance_near_sink.png",
+  "05_phone_charging_under_pillow.png",
+  "06_old_worn_outlet.png",
+  "07_clothes_near_heater.png",
+  "08_improvised_temporary_wiring.png",
+  "09_child_touching_outlet.png",
+  "10_appliances_on_standby.png",
+  "11_damaged_charging_cable.png",
+  "12_multiple_devices_one_strip.png",
+  "13_outlet_near_water_dispenser.png",
+  "14_improper_lab_wiring.png",
+  "15_loose_computer_plug.png",
+  "16_corridor_wire_tripping_hazard.png",
+  "17_equipment_left_on_after_class.png",
+  "18_wet_umbrella_near_power_strip.png",
+  "19_stage_temporary_wiring.png",
+  "20_diy_appliance_repair.png",
+  "21_sheltering_under_tree.png",
+  "22_near_metal_fence.png",
+  "23_umbrella_in_open_area.png",
+  "24_puddle_near_streetlight.png",
+  "25_sheltering_near_utility_pole.png",
+  "26_transformer_onlookers.png",
+  "27_photo_near_fallen_wire.png",
+  "28_hilltop_watching_lightning.png",
+  "29_touching_outdoor_electrical_box.png",
+  "30_cycling_through_puddle.png",
+  "31_plug_not_fully_inserted.png",
+  "32_dusty_outlet.png",
+  "33_power_strip_on_wet_floor.png",
+  "34_water_cup_near_outlet.png",
+  "35_uncertified_power_strip.png",
+  "36_cracked_outlet_cover.png",
+  "37_pulling_cord_to_unplug.png",
+  "38_daisy_chained_power_strips.png",
+  "39_sparking_outlet.png",
+  "40_missing_child_safety_cover.png",
+  "41_smoking_rice_cooker.png",
+  "42_overheated_charger.png",
+  "43_water_on_burning_power_strip.png",
+  "44_heater_igniting_cardboard.png",
+  "45_overheating_range_hood_cord.png",
+  "46_smoking_e_bike_charging.png",
+  "47_burning_smell_power_supply.png",
+  "48_dry_boiling_electric_kettle.png",
+  "49_burnt_air_conditioner_outlet.png",
+  "50_unattended_space_heater.png"
+];
+
+function applySafetyImages() {
+  safetyCases.forEach((item, index) => {
+    const fileName = safetyImageFiles[index];
+    if (fileName) item.image = `assets/safety-example/${fileName}`;
+  });
+}
+
+applySafetyImages();
+
+const experimentImageMap = {
+  exp_001: "01_static_electricity_ruler_paper.png",
+  exp_002: "02_balloon_static_hair_paper.png",
+  exp_003: "03_pencil_lead_conductivity.png",
+  exp_004: "04_simple_switch_light_bulb.png",
+  exp_005: "05_conductor_insulator_test.png",
+  exp_006: "06_salt_water_conductivity.png",
+  exp_007: "07_fruit_battery_led.png",
+  exp_008: "08_paper_cup_led_lamp.png",
+  exp_009: "09_electromagnet_paperclips.png",
+  exp_010: "10_dc_motor_fan_circuit.png",
+  e1: "01_static_electricity_ruler_paper.png",
+  e2: "04_simple_switch_light_bulb.png",
+  e3: "07_fruit_battery_led.png"
+};
+
+function applyExperimentImages() {
+  experiments.forEach(item => {
+    const fileName = experimentImageMap[item.id];
+    if (fileName) item.image = `assets/experiments/${fileName}`;
+  });
+}
+
+applyExperimentImages();
 
 const encyclopediaImageMap = {
   "电气元件:电池": "1_battery.jpg",
@@ -407,7 +496,20 @@ function render() {
     <button class="floating-pika" onclick="setRoute('home')" title="电团团带你回首页">${diantuantuan("guide", false)}<span>回首页</span></button>
       ${session.transition ? `<div class="transition">${diantuantuan("fly", false)}<strong>电团团正在带路...</strong></div>` : ""}
   `;
-  requestAnimationFrame(syncScaledPageHeight);
+  requestAnimationFrame(syncAndObserveScaledPageHeight);
+}
+
+function syncAndObserveScaledPageHeight() {
+  observeScaledPageHeight();
+  syncScaledPageHeight();
+}
+
+function observeScaledPageHeight() {
+  const page = document.querySelector(".page");
+  if (!page || !("ResizeObserver" in window)) return;
+  if (scaledPageResizeObserver) scaledPageResizeObserver.disconnect();
+  scaledPageResizeObserver = new ResizeObserver(() => requestAnimationFrame(syncScaledPageHeight));
+  scaledPageResizeObserver.observe(page);
 }
 
 function syncScaledPageHeight() {
@@ -420,10 +522,10 @@ function syncScaledPageHeight() {
   const scale = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--desktop-app-scale")) || 1;
   if (scale >= 1) return;
   frame.style.height = `${page.offsetHeight * scale}px`;
-  frame.style.overflow = "clip";
+  frame.style.overflow = "hidden";
 }
 
-window.addEventListener("resize", () => requestAnimationFrame(syncScaledPageHeight));
+window.addEventListener("resize", () => requestAnimationFrame(syncAndObserveScaledPageHeight));
 
 function toggleBigScreen() {
   session.bigScreen = !session.bigScreen;
@@ -447,7 +549,7 @@ function pageHero(title, desc, mood = "guide") {
       <h1>${title}</h1>
       <p>${desc}</p>
     </div>
-    <div class="pika-bubble">${diantuantuan(mood)}<span>不用登录，打开就能学。刷新页面后临时记录会清空哦！</span></div>
+    <div class="pika-bubble">${diantuantuan(mood)}<span>打开即可学习，临时记录仅保存在当前页面中。</span></div>
   </section>`;
 }
 
@@ -558,7 +660,7 @@ function quizView() {
     list = currentQuestions();
   }
   const q = list[session.quiz.index % list.length];
-  return `${pageHero("用电知识问答", "切换难度和题型，答完后查看电团团解析气泡。错题只保存在当前页面会话中。", "think")}
+  return `${pageHero("用电知识问答", "切换难度和题型，答题后查看电团团解析，错题会临时保存在本次学习中。", "think")}
     <section class="panel quiz-panel">
       <div class="toolbar">
         ${["入门级", "进阶级"].map(v => `<button class="${session.quiz.level === v ? "active" : ""}" onclick="setQuiz('level','${v}')">${v}</button>`).join("")}
@@ -679,7 +781,7 @@ function labView() {
   ensureCircuitSlots();
   const structured = isStructuredCircuit();
   const modeInfo = circuitModes.find(([id]) => id === session.circuit.mode) || circuitModes[0];
-  return `${pageHero("电路实验室", "当前为教学演示版：拖拽元件、观察亮灯转动、电表读数和安全诊断。", "crawl")}
+  return `${pageHero("电路实验室", "拖拽元件、观察亮灯转动、电表读数和安全诊断。", "crawl")}
     <section class="lab-layout">
       <aside class="panel">
         <h2>卡通元件库</h2>
@@ -1536,6 +1638,7 @@ function setCircuitSimulatorOpen(open) {
   session.circuit.simulatorOpen = open;
   const label = document.querySelector("[data-simulator-toggle-label]");
   if (label) label.textContent = circuitSimulatorToggleLabel(open);
+  requestAnimationFrame(syncScaledPageHeight);
 }
 
 function circuitJsUrl(cctText = buildCircuitJsText()) {
@@ -2114,14 +2217,14 @@ function clearCanvas() {
 
 function exportCircuit() {
   session.circuit.exported = true;
-  session.circuit.diagnosis = "截图导出提示已触发：演示版展示导出入口，后续可接入真实截图能力。";
+  session.circuit.diagnosis = "截图导出提示已触发：当前页面可作为课堂展示留存参考。";
   render();
 }
 
 function coursesView() {
   session.course.category = "全部";
   const list = courses;
-  return `${pageHero("电力科普微课", "打开视频观看，进度只在当前页面会话中临时变化。", "listen")}
+  return `${pageHero("电力科普微课", "观看电力科普微课，了解能源转型、发电方式和安全用电知识。", "listen")}
     <section class="panel">
       <div class="toolbar"><button class="active">全部</button></div>
       <div class="card-grid">${list.map(courseCard).join("")}</div>
@@ -2237,7 +2340,7 @@ function finishCourse(id) {
 function safetyView() {
   const cats = ["全部", "家庭用电", "校园用电", "户外雷雨", "插座安全", "电器起火"];
   const list = safetyCases.filter(c => session.safetyCategory === "全部" || c.category === session.safetyCategory);
-  return `${pageHero("安全用电案例", "用不惊悚的卡通方式理解危险行为、危害说明和预防方法。", "warn")}
+  return `${pageHero("安全用电案例", "结合生活场景认识危险行为、危害说明和预防方法。", "warn")}
     <section class="panel">
       <div class="toolbar">${cats.map(c => `<button class="${session.safetyCategory === c ? "active" : ""}" onclick="session.safetyCategory='${c}';render()">${c}</button>`).join("")}</div>
       <div class="safety-list">${list.map(item => `<article class="safety-card">
@@ -2252,7 +2355,7 @@ function safetyView() {
 function experimentsView() {
   const levels = ["全部", "低年级简易实验", "进阶手工实验"];
   const list = experiments.filter(e => session.experimentLevel === "全部" || e.level === session.experimentLevel);
-  return `${pageHero("趣味电力实验", "所有实验都使用低压、安全、容易取得的材料。做实验前请让成年人陪同。", "jump")}
+  return `${pageHero("趣味电力实验", "使用低压、安全、易取得的材料开展电力小实验，建议在成年人陪同下完成。", "jump")}
     <section class="panel">
       <div class="toolbar">${levels.map(l => `<button class="${session.experimentLevel === l ? "active" : ""}" onclick="session.experimentLevel='${l}';render()">${l}</button>`).join("")}</div>
       <div class="card-grid">${list.map(expCard).join("")}</div>
@@ -2262,7 +2365,7 @@ function experimentsView() {
 function expCard(e) {
   const open = session.expandedExperiment === e.id;
   return `<article class="content-card green">
-    <div class="video-cover experiment">${diantuantuan("fan", true)}<span>${e.level}</span></div>
+    <div class="video-cover experiment ${e.image ? "real-cover" : ""}">${e.image ? `<img src="${e.image}" alt="${e.title}配图" loading="lazy">` : diantuantuan("fan", true)}<span>${e.level}</span></div>
     <h2>${e.title}</h2>
     <div class="tag-row">${e.materials.map(m => `<span>${m}</span>`).join("")}</div>
     <p>${e.principle}</p>
@@ -2284,7 +2387,7 @@ function copyMaterials(id) {
 function encyclopediaView() {
   const cats = ["全部", "电气元件", "家用电器", "电力基础名词", "安全用电术语"];
   const hot = encyclopedia.slice(0, 6);
-  return `${pageHero("电气小百科", "搜索电气名词、家用电器和安全术语，电团团用白话讲给你听。", "book")}
+  return `${pageHero("电气小百科", "搜索电气名词、家用电器和安全术语，用白话认识身边的电。", "book")}
     <section class="ency-layout">
       <aside class="panel side">
         <h2>分类</h2>
@@ -2309,6 +2412,7 @@ function updateEncyclopediaKeyword(value) {
   session.encyclopedia.keyword = value;
   const results = document.getElementById("ency-results");
   if (results) results.innerHTML = encyclopediaResultsHtml();
+  requestAnimationFrame(syncScaledPageHeight);
 }
 
 function encyclopediaResultsHtml() {
