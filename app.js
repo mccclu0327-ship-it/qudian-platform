@@ -48,6 +48,16 @@
 
 let scaledPageResizeObserver = null;
 
+function enableLeavePlatformPrompt() {
+  window.addEventListener("beforeunload", event => {
+    event.preventDefault();
+    event.returnValue = "系统可能不会保存您所做的更改。";
+    return event.returnValue;
+  });
+}
+
+enableLeavePlatformPrompt();
+
 const nav = [
   ["lab", "电路实验室", "⚡"],
   ["quiz", "知识问答", "💡"],
@@ -123,7 +133,7 @@ const TOPOLOGY_SLOT_HEIGHT = 86;
 const TOPOLOGY_LEFT_PAD = 104;
 const TOPOLOGY_GAP = 206;
 const TOPOLOGY_BRANCH_GAP = 214;
-const CUSTOM_CIRCUIT_SIMULATOR_URL = "https://mccclu0327-ship-it.github.io/circuitjs1-qd/circuitjs.html";
+const CUSTOM_CIRCUIT_SIMULATOR_URL = "./vendor/circuitjs1-dist/circuitjs.html";
 
 const circuitCases = [
   { id: "series", name: "串联小灯泡", mode: "series", desc: "电池、开关、灯泡顺序连接，观察唯一电流路径。", extras: { main: 1 }, slots: { source: "电池", control: "开关", load1: "灯泡", loadExtra1: "简易电阻" } },
